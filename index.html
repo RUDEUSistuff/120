@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Smart Calculator Hub</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+    padding:20px;
+    font-family:'Segoe UI',Arial;
+    background:radial-gradient(#0a0f2a,#03050b);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    flex-direction:column;
+}
+
+.star{
+    position:fixed;
+    width:3px;
+    height:3px;
+    background:white;
+    border-radius:50%;
+    animation:move 8s linear infinite;
+}
+@keyframes move{
+    from{transform:translateY(100vh)}
+    to{transform:translateY(-10vh)}
+}
+
+.container{max-width:1100px;width:100%;text-align:center}
+
+button{
+    padding:12px 20px;
+    margin:6px;
+    border-radius:10px;
+    border:none;
+    background:rgba(80,100,180,0.5);
+    color:white;
+    cursor:pointer;
+    transition:.2s;
+}
+button:hover{transform:scale(1.05)}
+
+.menu-btn{
+    padding:20px 40px;
+    font-size:20px;
+}
+
+.hidden{display:none}
+
+input{
+    padding:12px;
+    width:80%;
+    margin:10px;
+    border-radius:10px;
+    border:none;
+    text-align:center;
+}
+
+.result-box{
+    margin-top:15px;
+    padding:10px;
+    background:rgba(0,0,0,0.4);
+    border-radius:10px;
+}
+
+.physics-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:10px;
+}
+
+#puzzleOptions button{
+    width:100%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div id="welcome">
+<h1>AI Smart Calculator Hub</h1>
+<p>Smart calculator for Math + Physics + Puzzle</p>
+<button class="menu-btn" id="startBtn">Start</button>
+</div>
+
+<div id="menu" class="hidden">
+<h2>Select</h2>
+<button class="menu-btn" onclick="showPage('math')">Math</button>
+<button class="menu-btn" onclick="showPage('physics')">Physics</button>
+<button class="menu-btn" onclick="showPage('puzzle')">Puzzle</button>
+</div>
+
+<div id="math" class="hidden">
+<h2>Math</h2>
+
+<input id="mathInput">
+
+<div>
+<button onclick="addMath('+')">+</button>
+<button onclick="addMath('-')">-</button>
+<button onclick="addMath('*')">×</button>
+<button onclick="addMath('/')">÷</button>
+<button onclick="addMath('**')">^</button>
+<button onclick="addMath('Math.PI')">π</button>
+</div>
+
+<button onclick="calculateMath()">Calculate</button>
+
+<div class="result-box">
+<p id="mathRes">Result:</p>
+<p id="mathExplain">Steps:</p>
+</div>
+
+<button onclick="showPage('menu')">Back</button>
+</div>
+
+<div id="physics" class="hidden">
+<h2>Physics</h2>
+
+<div class="physics-grid">
+<button onclick="setLaw('F')">F=ma</button>
+<button onclick="setLaw('P')">Pressure</button>
+<button onclick="setLaw('KE')">Kinetic Energy</button>
+<button onclick="setLaw('D')">Density</button>
+</div>
+
+<input id="val1" placeholder="Value 1">
+<input id="val2" placeholder="Value 2">
+
+<button onclick="applyPhysics()">Calculate</button>
+
+<p id="physicsRes"></p>
+
+<button onclick="showPage('menu')">Back</button>
+</div>
+
+<div id="puzzle" class="hidden">
+<h2>Puzzle</h2>
+
+<p id="puzzleQuestion"></p>
+<div id="puzzleOptions"></div>
+
+<p id="puzzleScore">Score: 0</p>
+
+<button onclick="startPuzzle()">Start</button>
+<button onclick="showPage('menu')">Back</button>
+</div>
+
+</div>
+
+<script>
+
+for(let i=0;i<40;i++){
+ let s=document.createElement('div');
+ s.className='star';
+ s.style.left=Math.random()*100+'%';
+ s.style.animationDuration=(5+Math.random()*5)+'s';
+ document.body.appendChild(s);
+}
+
+document.getElementById('startBtn').onclick=()=>{
+ document.getElementById('welcome').classList.add('hidden');
+ document.getElementById('menu').classList.remove('hidden');
+};
+
+function showPage(page){
+ ['menu','math','physics','puzzle'].forEach(p=>{
+  document.getElementById(p).classList.add('hidden');
+ });
+ document.getElementById(page).classList.remove('hidden');
+}
+
+function addMath(v){
+ document.getElementById('mathInput').value+=v;
+}
+
+function calculateMath(){
+ try{
+  let input=document.getElementById('mathInput').value;
+  let result=new Decimal(eval(input.replace(/×/g,'*').replace(/÷/g,'/')));
+  document.getElementById('mathRes').innerText="Result: "+result;
+  document.getElementById('mathExplain').innerText=input+" = "+result;
+ }catch{
+  document.getElementById('mathRes').innerText="Error";
+ }
+}
+
+let currentLaw='';
+
+function setLaw(l){currentLaw=l;}
+
+function applyPhysics(){
+ let a=parseFloat(val1.value);
+ let b=parseFloat(val2.value);
+ if(isNaN(a)||isNaN(b)) return physicsRes.innerText="Enter values";
+
+ let r=0;
+ if(currentLaw=='F') r=a*b;
+ if(currentLaw=='P') r=a/b;
+ if(currentLaw=='KE') r=0.5*a*b*b;
+ if(currentLaw=='D') r=a/b;
+
+ physicsRes.innerText="Result: "+r;
+}
+
+let score=0;
+
+function startPuzzle(){
+ nextQ();
+}
+
+function nextQ(){
+ let a=Math.floor(Math.random()*20);
+ let b=Math.floor(Math.random()*20);
+ let correct=a+b;
+
+ puzzleQuestion.innerText=`${a} + ${b} = ?`;
+
+ let opts=[correct,correct+1,correct-1,correct+2];
+ opts.sort(()=>Math.random()-0.5);
+
+ puzzleOptions.innerHTML='';
+
+ opts.forEach(o=>{
+  let btn=document.createElement('button');
+  btn.innerText=o;
+  btn.onclick=()=>{
+   if(o===correct){score+=10; alert("Correct");}
+   else{alert("Wrong");}
+   puzzleScore.innerText="Score: "+score;
+   nextQ();
+  };
+  puzzleOptions.appendChild(btn);
+ });
+}
+
+</script>
+
+</body>
+</html>
