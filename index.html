@@ -3,153 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <title>AI Smart Calculator Hub</title>
+
+<!-- مكتبات -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{margin:0;padding:20px;font-family:'Segoe UI',Arial,sans-serif;background:radial-gradient(ellipse at center,#0a0f2a 0%,#03050b 100%);color:white;display:flex;justify-content:center;align-items:center;min-height:100vh;text-align:center;flex-direction:column;position:relative;overflow-x:hidden}
-.stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
-.star{position:absolute;background:white;border-radius:50%;animation:moveUp linear infinite}
-@keyframes moveUp{0%{transform:translateY(100vh)}100%{transform:translateY(-20vh)}}
-.container{max-width:1200px;width:100%;margin:auto;z-index:1}
+body{margin:0;padding:20px;font-family:'Segoe UI',Arial;background:radial-gradient(#0a0f2a,#03050b);color:white;text-align:center}
 .hidden{display:none}
-button{padding:14px 28px;margin:8px;border-radius:12px;color:white;background:rgba(80,100,160,0.7);cursor:pointer}
-input{padding:14px;width:85%;border-radius:12px;text-align:center;margin:10px}
-.result,.explain{margin:10px}
+button{padding:10px;margin:5px;border-radius:10px;background:#556;cursor:pointer;color:white}
+input{padding:10px;width:80%;margin:10px}
 </style>
 </head>
 
 <body>
 
-<div class="stars" id="starsContainer"></div>
-
-<div class="container">
-
-<!-- Welcome -->
-<div id="welcome">
 <h1>AI Smart Calculator Hub</h1>
-<button id="startBtn">Start</button>
-</div>
 
-<!-- Menu -->
-<div id="menu" class="hidden">
-<h2>Select</h2>
+<!-- MENU -->
+<div id="menu">
 <button onclick="showPage('math')">Math</button>
 <button onclick="showPage('physics')">Physics</button>
-<button onclick="showPage('puzzle')">Puzzle</button>
-<button onclick="showPage('ai3d')">3D & AI</button>
+<button onclick="showPage('ai3d')">3D</button>
 </div>
 
-<!-- Math -->
+<!-- MATH -->
 <div id="math" class="hidden">
 <h2>Math</h2>
+
 <input id="mathInput">
-<button onclick="calculateMath()">Calculate</button>
-<div id="mathRes"></div>
-<div id="mathExplain"></div>
+
+<br>
+<button onclick="add('+')">+</button>
+<button onclick="add('-')">-</button>
+<button onclick="add('*')">*</button>
+<button onclick="add('/')">/</button>
+<button onclick="add('Math.sqrt(')">√</button>
+<button onclick="add('Math.sin(')">sin</button>
+<button onclick="add('Math.cos(')">cos</button>
+<button onclick="add('Math.tan(')">tan</button>
+<button onclick="add('Math.log(')">log</button>
+<button onclick="add('Math.PI')">π</button>
+
+<br>
+<button onclick="calc()">Calculate</button>
+
+<div id="res"></div>
+
 <button onclick="showPage('menu')">Back</button>
 </div>
 
-<!-- Physics -->
+<!-- PHYSICS -->
 <div id="physics" class="hidden">
-<h2>Physics</h2>
-<button onclick="alert('F = m × a')">Force</button>
+<h2>Physics Laws</h2>
+
+<button onclick="law('F = m × a')">Force</button>
+<button onclick="law('P = F / A')">Pressure</button>
+<button onclick="law('E = mgh')">Potential Energy</button>
+<button onclick="law('Ek = ½mv²')">Kinetic Energy</button>
+<button onclick="law('V = IR')">Ohm</button>
+<button onclick="law('W = F × d')">Work</button>
+<button onclick="law('P = W / t')">Power</button>
+<button onclick="law('ρ = m / V')">Density</button>
+<button onclick="law('p = mv')">Momentum</button>
+<button onclick="law('v = d / t')">Velocity</button>
+<button onclick="law('a = v / t')">Acceleration</button>
+<button onclick="law('F = kx')">Hooke</button>
+<button onclick="law('E = mc²')">Einstein</button>
+<button onclick="law('Q = mcΔT')">Heat</button>
+<button onclick="law('f = 1/T')">Frequency</button>
+<button onclick="law('λ = v / f')">Wave</button>
+
+<div id="lawRes"></div>
+
 <button onclick="showPage('menu')">Back</button>
 </div>
 
-<!-- Puzzle -->
-<div id="puzzle" class="hidden">
-<h2>Puzzle</h2>
-<p>Simple Game</p>
-<button onclick="showPage('menu')">Back</button>
-</div>
-
-<!-- 🔥 NEW AI 3D -->
+<!-- 3D -->
 <div id="ai3d" class="hidden">
-<h2>3D & AI Calculator</h2>
+<h2>3D Shapes</h2>
 
-<input id="aiInput" placeholder="cube 3 or sphere 5">
+<button onclick="createCube()">Cube</button>
+<button onclick="createSphere()">Sphere</button>
 
-<button onclick="solveAI()">Solve</button>
-
-<div id="aiRes" class="result">Result: ---</div>
-<div id="aiExplain" class="explain">Explanation: ---</div>
+<div id="canvas3d"></div>
 
 <button onclick="showPage('menu')">Back</button>
-</div>
-
 </div>
 
 <script>
 
-// stars
-for(let i=0;i<30;i++){
-let s=document.createElement('div');
-s.className='star';
-s.style.width='2px';
-s.style.height='2px';
-s.style.left=Math.random()*100+'%';
-s.style.animationDuration=(Math.random()*5+5)+'s';
-document.getElementById('starsContainer').appendChild(s);
-}
-
-// navigation
+// NAV
 function showPage(p){
-['menu','math','physics','puzzle','ai3d'].forEach(id=>{
-document.getElementById(id).classList.add('hidden');
+['menu','math','physics','ai3d'].forEach(x=>{
+document.getElementById(x).classList.add('hidden')
 });
-document.getElementById(p).classList.remove('hidden');
+document.getElementById(p).classList.remove('hidden')
 }
 
-document.getElementById('startBtn').onclick=()=>{
-document.getElementById('welcome').classList.add('hidden');
-document.getElementById('menu').classList.remove('hidden');
-};
+// MATH
+function add(v){
+document.getElementById('mathInput').value+=v
+}
 
-// math
-function calculateMath(){
-let input=document.getElementById('mathInput').value;
+function calc(){
 try{
-let res=eval(input);
-document.getElementById('mathRes').innerHTML="Result: "+res;
-document.getElementById('mathExplain').innerHTML=input+" = "+res;
+let r=eval(document.getElementById('mathInput').value)
+document.getElementById('res').innerHTML="Result: "+r
 }catch{
-document.getElementById('mathRes').innerHTML="Error";
+document.getElementById('res').innerHTML="Error"
 }
 }
 
-// 🔥 AI 3D
-function solveAI(){
-let input=document.getElementById('aiInput').value.toLowerCase();
-
-try{
-
-if(input.includes('cube')){
-let n=parseFloat(input.match(/\d+/));
-let r=n*n*n;
-document.getElementById('aiRes').innerHTML="Result: "+r;
-document.getElementById('aiExplain').innerHTML=`cube volume = ${n}³ = ${r}`;
+// PHYSICS
+function law(x){
+document.getElementById('lawRes').innerHTML=x
 }
 
-else if(input.includes('sphere')){
-let r=parseFloat(input.match(/\d+/));
-let v=(4/3)*Math.PI*r*r*r;
-v=v.toFixed(2);
-document.getElementById('aiRes').innerHTML="Result: "+v;
-document.getElementById('aiExplain').innerHTML=`4/3 π r³ = ${v}`;
+// 3D
+let scene,camera,renderer,cube;
+
+function init3D(){
+scene=new THREE.Scene();
+camera=new THREE.PerspectiveCamera(75,1,0.1,1000);
+renderer=new THREE.WebGLRenderer();
+renderer.setSize(300,300);
+document.getElementById('canvas3d').innerHTML='';
+document.getElementById('canvas3d').appendChild(renderer.domElement);
+camera.position.z=5;
 }
 
-else{
-let res=eval(input);
-document.getElementById('aiRes').innerHTML="Result: "+res;
-document.getElementById('aiExplain').innerHTML=input+" = "+res;
+function animate(){
+requestAnimationFrame(animate);
+if(cube){
+cube.rotation.x+=0.01;
+cube.rotation.y+=0.01;
+}
+renderer.render(scene,camera);
 }
 
-}catch{
-document.getElementById('aiRes').innerHTML="Error";
-document.getElementById('aiExplain').innerHTML="Try: cube 3";
+function createCube(){
+init3D();
+let geo=new THREE.BoxGeometry();
+let mat=new THREE.MeshBasicMaterial({color:0x00ff00,wireframe:true});
+cube=new THREE.Mesh(geo,mat);
+scene.add(cube);
+animate();
 }
 
+function createSphere(){
+init3D();
+let geo=new THREE.SphereGeometry();
+let mat=new THREE.MeshBasicMaterial({color:0x00ffff,wireframe:true});
+cube=new THREE.Mesh(geo,mat);
+scene.add(cube);
+animate();
 }
 
 </script>
